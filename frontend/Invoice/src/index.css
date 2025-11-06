@@ -1,0 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Zalando+Sans:ital,wght@0,200..900;1,200..900&display=swap');
+@import "tailwindcss";
+
+/* @theme */
+:root {
+  --font-display: "Zalando Sans";
+  --breakpoint-3xl: 1920px;
+  --color-primary: #FF9324;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-display);
+  }
+  body {
+    background-color: #06000a;
+    color: white;
+    
+    
+  }
+}
