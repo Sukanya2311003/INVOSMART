@@ -43,7 +43,7 @@ exports.createInvoice= async (req, res)=>{
 // @access private
 exports.getInvoices= async (req, res)=>{
     try {
-        const invoices= await Invoice.find().populate("user", "name email");
+        const invoices= await Invoice.find({user: req.user.id}).populate("user", "name email");
         res.json(invoices);
     } catch (error) {
       res
@@ -59,6 +59,13 @@ exports.getInvoiceById=async (req, res)=>{
         const invoice= await Invoice.findById(req.params.id).populate("user", "name email");
         if(!invoice){
             return res.status(404).json({message:"Invoice not found"});
+
+        //   checking if invoice belongs to the user
+        if(!invoice.user.toString() === req.user.id){
+            return res.status(401).json({message:"Unauthorized access"});
+        }
+        
+
             res.json(invoice);
         }
     } catch (error) {

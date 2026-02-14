@@ -11,6 +11,7 @@ const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 
 
+
 const parseInvoiceFromText= async (req, res)=>{
     const {text}= req.body;
     if(!text){
@@ -41,7 +42,7 @@ const parseInvoiceFromText= async (req, res)=>{
         //     model: 'gemini-1.5-flash-latest',
         //     contents: prompt,
         // });
-  const model = ai.getGenerativeModel({ model: "gemini-2.0-flash" });
+  const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
   const result = await model.generateContent(prompt);
   const responseText = await result.response.text();
 
@@ -90,7 +91,7 @@ const generateReminderEmail= async (req, res)=>{
 // Body:
 // <email message>`;
     //     const response= await ai.models.generateContent ({
-    //         model: 'gemini-2.0-flash-latest',
+    //         model: 'gemini-1.5-flash-latest',
     //         contents: prompt,
     // });
      const prompt = `
@@ -124,7 +125,7 @@ Email requirements:
 
 
 
-const model = ai.getGenerativeModel({ model: "gemini-2.0-flash" });
+const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
 const result = await model.generateContent(prompt);
 const responseText = result.response.text();
 
@@ -168,7 +169,7 @@ const getDashboardSummary= async (req, res)=>{
         Example format:
         {"insights": ["Your revenue is looking strong  this  month!", "You have 5 overfue invoices. Consider sending reminders to get paid faster."]}
         `;
-        const model = ai.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const result = await model.generateContent(prompt);
         const responseText = await result.response.text();

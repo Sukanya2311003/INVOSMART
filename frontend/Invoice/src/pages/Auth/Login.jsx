@@ -18,7 +18,7 @@ import { useNavigate } from "react-router-dom";
 import { validateEmail, validatePassword } from "../../utils/helper";
 
 const Login=()=>{
-    const {Login}= useAuth();
+    const {Login: authLogin}= useAuth();
     const navigate= useNavigate();
     const [formData, setFormData]= useState({
         email:"",
@@ -104,61 +104,35 @@ const Login=()=>{
         setError("");
         setSuccess("");
 
-    //     try{
-    //         const response= await axiosInstance.post(API_PATHS.AUTH.LOGIN, formData);
-    //         if(!response.status===200){
-    //             const {token}= response.data;
-    //             if(token){
-    //                 setSuccess("Login successful! Redirecting...");
-    //             Login(response.data,token);
-    //             // redirect based on role
-    //             setTimeout(() => {
-    //                 window.location.href= "/dashboard";
-    //             }, 2000);
-    //         }
-    // }
-    // else{
-    //     setError(response.data.message || "Invalid Credentials.");
-    // }
-    //     }
-    //     catch (err){
-    //         if(err.response && err.response.data && err.response.data.message){
-    //             setError(err.response.data.message);
-    //         }
-    //         else{
-    //             setError("An error occurred. Please try again.");
-    //         }
-    //     }finally{
-    //         setIsLoading(false);
-    //     }
+    
 try {
   const response = await axiosInstance.post(API_PATHS.AUTH.LOGIN, formData);
-  // ... inside handleSubmit's try block
-  // ...
-  authLogin(response.data, token);
-  // ...
-  // ✅ Only runs if status is 2xx
-  const { token, message } = response.data;
 
-  if (token) {
-    setError("");
-    setSuccess("Login successful! Redirecting...");
-    Login(response.data, token);
-    setTimeout(() => {
-      window.location.href = "/dashboard";
-    }, 1500);
-  } else {
-    setError(message || "Invalid credentials.");
-    setSuccess("");
+  console.log("LOGIN RESPONSE:", response.data);
+
+  const { token, ...userData } = response.data;
+
+  if (!token) {
+    setError("Token not received");
+    return;
   }
+
+  localStorage.setItem("token", token);
+
+  authLogin(userData, token);
+
+
+  setSuccess("Login successful! Redirecting...");
+  setError("");
+
+  navigate("/dashboard");
 } catch (err) {
-  // ❌ This runs if backend sends 4xx/5xx
-  setSuccess("");
-  if (err.response?.data?.message) {
-    setError(err.response.data.message);
-  } else {
-    setError("An error occurred. Please try again.");
-  }
+  console.error("LOGIN ERROR:", err);
+  setError(
+    err.response?.data?.message ||
+      err.message ||
+      "An error occurred. Please try again.",
+  );
 } finally {
   setIsLoading(false);
 }

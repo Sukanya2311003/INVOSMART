@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
 import HeroImg from "../../assets/Hero-img.png";
+import { useAuth } from "../../context/AuthContext";
 
 
 const Hero=()=>{
-  const isAuthenticated = false;
+  const {isAuthenticated }= useAuth(); // replace with real logic
   return (
     <section className="relative bg-[#06000a] overflow-hidden ">
       <div className="absolute inset-0 bg-grid/white/[0.05] bg-[size:60px_60px]"></div>
@@ -22,7 +23,7 @@ const Hero=()=>{
               {isAuthenticated ? (
                 <a
                   href="/dashboard"
-                  className="bg-gradient-to-r from-blue-950 to blue-900 text-white px-8 py-4 rounded-xl font-bold text-base  sm:text-lg hover:bg-blue-900 transition-all duration-300 hover:scale-105 hover: shadow-2xl transform"
+                  className="bg-gradient-to-r from-indigo-500  via-purple-600 to-pink-600   text-white px-8 py-4 rounded-xl font-bold text-base  sm:text-lg hover:bg-blue-900 transition-all duration-300 hover:scale-105 hover: shadow-2xl transform"
                 >
                   {" "}
                   Go to Dashboard

@@ -30,7 +30,7 @@ export const AuthProvider= ({children})=>{
             setLoading(false);
         }
     };
-    const login=  (userData, token)=>{
+    const Login=  (userData, token)=>{
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(userData));
         setUser (userData);
@@ -55,7 +55,7 @@ export const AuthProvider= ({children})=>{
         user,
         loading,
         isAuthenticated,
-        login,
+        Login,
         logout,
         updateUser,
         checkAuthStatus,

@@ -6,6 +6,10 @@ import {
 } from "react-router-dom";
 
 import { Toaster } from "react-hot-toast";
+
+// import { ToastContainer } from "react-toastify";
+// import "react-toastify/dist/ReactToastify.css";
+
 import LandingPage from "./pages/LandingPage/LandingPage";
 import SignUp from "./pages/Auth/SignUp";
 import Login from "./pages/Auth/Login";   
