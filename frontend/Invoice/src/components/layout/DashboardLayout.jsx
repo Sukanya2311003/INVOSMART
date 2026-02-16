@@ -76,11 +76,12 @@ const handleNavigation = ( itemId)=> {
 const sidebarCollapsed= !isMobile && false;
 
 return (
-  <div className="bg-black text-white flex h-screen overflow-hidden">
+  // <div className="bg-black text-white flex h-screen overflow-hidden">
+  <div className="bg-black text-white flex h-screen overflow-hidden print:block">
 
     {/* Sidebar */}
     <div
-      className={`fixed inset-y-0 left-0 z-50 transition-transform duration-300 transform
+      className={`fixed inset-y-0 left-0 z-50 transition-transform duration-300 transform print:hidden
         ${
           isMobile
             ? sidebarOpen

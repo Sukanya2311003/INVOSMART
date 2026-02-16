@@ -18,26 +18,73 @@ const parseInvoiceFromText= async (req, res)=>{
         return res.status(400).json({message:"Text is required"});
     }
     try{
-        const prompt= `You are an expert at extracting invoice data from unstructured text.Analyze the following text and extract relevant information to  create an invoice.The output MUST be a valid JSON object.
-        The JSON object should have following structures:
-        {
-        "clientName": "string",
-        "email": "string(if available)",
-        "address": "string(if available)",
-        "items": [
-            {
-                "name": "string",
-                "quantity": number,
-                "unitPrice": number
-            }
+        // const prompt= `You are an expert at extracting invoice data from unstructured text.Analyze the following text and extract relevant information to  create an invoice.The output MUST be a valid JSON object.
+        // The JSON object should have following structures:
+        // {
+        // "clientName": "string",
+        // "email": "string(if available)",
+        // "address": "string(if available)",
+        // "items": [
+        //     {
+        //         "name": "string",
+        //         "quantity": number,
+        //         "unitPrice": number
+
+               
+
+        //     }
             
-        ],  
-        }
-        Here is the text to parse:
-        ---TEXT START   ---
-        ${text}
-        ---TEXT END---
-        Extract the data and provide only JSON object.`;
+        // ],  
+        // }
+        // Here is the text to parse:
+        // ---TEXT START   ---
+        // ${text}
+        // ---TEXT END---
+        // Extract the data and provide only JSON object.`;
+
+const prompt = `
+You are an expert at extracting invoice data from unstructured text.
+
+Analyze the following text and extract all relevant information required to create an invoice.
+
+The output MUST be a valid JSON object.
+
+The JSON object should have the following structure:
+
+{
+  "clientName": "string",
+  "email": "string (if available)",
+  "address": "string (if available)",
+  "invoiceDate": "MM-DD-YYYY (if mentioned)",
+  "dueDate": "MM-DD-YYYY (if mentioned)",
+  "gstPercent": number (if mentioned, otherwise 0),
+  "notes": "string (any payment terms or late payment policy if mentioned)",
+  "items": [
+    {
+      "name": "string",
+      "quantity": number,
+      "unitPrice": number
+    }
+  ]
+}
+
+Rules:
+- Convert dates to MM-DD-YYYY format.
+- If payment terms or late payment penalties are mentioned, include them in "notes".
+- Extract any tax mentioned (GST, VAT, Sales Tax, etc.)
+- If multiple taxes are mentioned, include all in "taxes" array.
+- Return ONLY valid JSON.
+- Do NOT include explanations.
+
+Here is the text to parse:
+---TEXT START---
+${text}
+---TEXT END---
+
+Extract the data and provide only the JSON object.
+`;
+
+
         // const response= await ai.models.generateContent ({
         //     model: 'gemini-1.5-flash-latest',
         //     contents: prompt,
@@ -94,6 +141,8 @@ const generateReminderEmail= async (req, res)=>{
     //         model: 'gemini-1.5-flash-latest',
     //         contents: prompt,
     // });
+    //  "invoiceDate" : ""
+                // "dueDate ": "",
      const prompt = `
 Write a professional and polite overdue invoice reminder email. Use the exact values provided.
 

@@ -88,7 +88,7 @@ import { Loader2 } from "lucide-react";
 const Button = ({
   variant = "primary",
   size = "md",
-  isloading = false,
+  isLoading = false,
   children,
   icon: Icon,
   ...props
@@ -114,10 +114,10 @@ const Button = ({
       className={`${baseClasses} ${variantClasses[variant]} ${
         sizeClasses[size]
       } ${props.className || ""}`}
-      disabled={isloading}
+      disabled={isLoading}
       {...props}
     >
-      {isloading ? (
+      {isLoading ? (
         <Loader2 className="w-5 h-5 animate-spin" />
       ) : (
         <>

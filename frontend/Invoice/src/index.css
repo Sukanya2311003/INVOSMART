@@ -19,3 +19,32 @@
     
   }
 }
+@media print {
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  .print-area,
+  .print-area * {
+    visibility: visible !important;
+  }
+
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 210mm;
+    min-height: 297mm;
+    padding: 15mm;
+    background: white;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+   @page {
+    size: A4;
+    margin: 0;
+  }
+}

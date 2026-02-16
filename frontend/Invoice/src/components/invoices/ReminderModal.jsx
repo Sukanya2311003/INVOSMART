@@ -1,7 +1,102 @@
-import React from "react";
-const ReminderModal =({isOpen, onClose})=>{
+import React, {useState, useEffect} from "react";
+import { Loader2, Mail, Copy, Check, Import } from "lucide-react";
+import Button from "../ui/Button";
+import TextareaField from "../ui/TextareaField";
+import axiosInstance  from "../../utils/axiosInstance";
+import { API_PATHS } from "../../utils/apiPaths";
+import toast from "react-hot-toast";
+    
+const ReminderModal =({isOpen, onClose, invoiceId})=>{
+    const [reminderText, setReminderText]= useState('');
+    const[isLoading, setIsLoading]= useState(false);
+    const[hasCopied, setHasCopied]= useState(false);
+    useEffect(()=>{
+        if(isOpen && invoiceId){
+            const generateReminder= async ()=>{
+                setIsLoading(true);
+                setReminderText('');
+                try{
+                    const response= await axiosInstance.post(API_PATHS.AI.GENERATE_REMINDER, {invoiceId});
+                    setReminderText(response.data.reminderText);
+
+                }
+                catch(error){
+                    toast.error('Failed to generate reminder. ');
+                    console.error('AI reminder error: ', error);
+                    onClose();
+
+                } finally{
+                    setIsLoading(false);
+                }
+
+            };
+            generateReminder();
+        
+        }
+    }, [isOpen, invoiceId, onClose]);
+
+const handleCopyToClipBoard= ()=>{
+    navigator.clipboard.writeText(reminderText);
+    setHasCopied(true);
+    toast.success('Reminder copied to clipboard');
+    setTimeout(()=>setHasCopied(false), 2000);
+
+};
+if (!isOpen) return null;
+
     return (
-        <div >Reminder Modal</div>
-    )
+      <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center">
+     
+        <div className="flex items-center justify-center min-h-screen px-4 text-center">
+          <div
+            className="fixed inset-0 bg-black-60 justify-center flex items-center backdrop-blur-sm "
+            onClick={onClose}
+          >
+            <div className="bg-zinc-900 rounded-lg shadow-xl max-w-lg w-full p-6 relative text-left transform transition-all">
+              <div className="flex items-center justify-between mb-4">
+                  <Mail className="w-5 h-5 mr-2 text-blue-500">
+                  </Mail>
+                <h3 className="text-lg font-semibold text-slate-100 text-left">
+                    AI Generated Reminder
+                </h3>
+                <button
+                  onClick={onClose}
+                  className="text-slate-100 hover:text-red-300 "
+                >
+                  &times;
+                </button>
+              </div>
+              {isLoading ? (
+                <div className="flex justify-center items-center h-48">
+                  <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <TextareaField
+                    name="reminderText"
+                    value={reminderText}
+                    readOnly
+                    rows={10}
+                  />
+                </div>
+              )}
+              <div className="flex justify-end space-x-3 mt-6 ">
+                <Button variant="secondary" onClick={onClose}>
+                  Close
+                </Button>
+                <Button
+                  onClick={handleCopyToClipBoard}
+                  icon={hasCopied ? Check : Copy}
+                  disabled={isLoading}
+                >
+                  
+                  {hasCopied ? "Copied!" : "Copy Text"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
 }
 export default ReminderModal;

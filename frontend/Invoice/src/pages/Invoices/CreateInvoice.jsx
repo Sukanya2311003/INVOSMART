@@ -27,6 +27,7 @@ const CreateInvoice = () => {
   const existingInvoice = location.state?.invoice || null;
 
   const { user } = useAuth();
+  
 
   const [formData, setFormData] = useState(
     (typeof existingInvoice !== "undefined" && existingInvoice) || {
@@ -40,7 +41,8 @@ const CreateInvoice = () => {
         phone: user?.phone || "",
       },
       billTo: {
-        Name: "",
+        // Name: "",
+        clientName:"",
         email: "",
         address: "",
         phone: "",
@@ -61,60 +63,166 @@ const CreateInvoice = () => {
   const [isGeneratingNumber, setIsGeneratingNumber] =
     useState(!existingInvoice);
 
-  useEffect(() => {
-    const aiData = location.state?.aiData;
-    if (aiData) {
+//   useEffect(() => {
+//     const aiData = location.state?.aiData;
+//     // if (aiData) {
+//     if(!aiData) return;
+//       setFormData((prevData) => ({
+//         ...prevData,
+//         billTo: {
+
+// ...prevData.billTo,
+
+//           clientName: aiData.clientName || "",
+//           email: aiData.email || "",
+//           address: aiData.address || "",
+//           phone: "",
+//         },
+//         // items: aiData.items || [
+//         items: aiData.items?.length ? aiData.items.map((item)=>({
+// name: item.name || "",
+//           quantity: item.quantity || 1,
+//           unitPrice: item.unitPrice || 0,
+//           taxPercent: 0,
+//         })): prevData.items,
+//           // { name: "", quantity: 1, unitPrice: 0, taxPercent: 0 },
+//         // ],
+//       // }));
+//       }));
+//     }, [location.state]);
+//     if (existingInvoice) {
+//       setFormData({
+//         ...existingInvoice,
+//         invoiceDate: moment(existingInvoice.invoiceDate).format("YYYY-MM-DD"),
+//         dueDate: moment(existingInvoice.dueDate).format("YYYY-MM-DD"),
+//       });
+//     } else {
+//       const generateNewInvoiceNumber = async () => {
+//         setIsGeneratingNumber(true);
+//         try {
+//           const response = await axiosInstance.get(API_PATHS.INVOICE.GET_ALL);
+//           const invoices = response.data;
+//           let maxNum = 0;
+//           invoices.forEach((inv) => {
+//             const num = parseInt(inv.invoiceNumber.split("-")[1]);
+//             if (!isNaN(num) && num > maxNum) {
+//               maxNum = num;
+//             }
+//           });
+//           const newInvoiceNumber = `INV-${String(maxNum + 1).padStart(3, "0")}`;
+//           setFormData((prevData) => ({
+//             ...prevData,
+//             invoiceNumber: newInvoiceNumber,
+//           }));
+//         } catch (error) {
+//           console.error("Failed to generate invoice number");
+//           setFormData((prevData) => ({
+//             ...prevData,
+//             invoiceNumber: `INV-${Date.now().toString().slice(-5)}`,
+//           }));
+//         }
+//         setIsGeneratingNumber(false);
+//       };
+//       generateNewInvoiceNumber();
+//     }
+//   // }, [existingInvoice]);
+//   }, [existingInvoice, location.state]);
+
+useEffect(() => {
+ const aiData = location.state?.aiData;
+
+ // 🔹 Calculate tax safely
+ const totalTaxPercent =
+   aiData?.taxes?.reduce((sum, tax) => sum + (Number(tax.percent) || 0), 0) ||
+   aiData?.gstPercent ||
+   0;
+
+ // 1️⃣ If editing existing invoice
+ if (existingInvoice) {
+   setFormData({
+     ...existingInvoice,
+     invoiceDate: moment(existingInvoice.invoiceDate).format("YYYY-MM-DD"),
+     dueDate: moment(existingInvoice.dueDate).format("MM-DD-YYYY"),
+   });
+   return;
+ }
+
+  // 2️⃣ If AI data exists
+  if (aiData) {
+     
+    setFormData((prevData) => ({
+      ...prevData,
+
+      // Dates
+      invoiceDate: aiData.invoiceDate
+        ? moment(aiData.invoiceDate).format("YYYY-MM-DD")
+        : prevData.invoiceDate,
+
+      dueDate: aiData.dueDate
+        ? moment(aiData.dueDate).format("YYYY-MM-DD")
+        : prevData.dueDate,
+
+      // Notes
+      notes: aiData.notes || prevData.notes,
+
+      // Client
+      billTo: {
+        ...prevData.billTo,
+        clientName: aiData.clientName || "",
+        email: aiData.email || "",
+        address: aiData.address || "",
+      },
+
+      // Items + Tax
+      items: aiData.items?.length
+        ? aiData.items.map((item) => ({
+            name: item.name || "",
+            quantity: item.quantity || 1,
+            unitPrice: item.unitPrice || 0,
+            taxPercent: totalTaxPercent,
+          }))
+        : prevData.items,
+    }));
+  }
+
+  // 3️⃣ Generate new invoice number
+  const generateNewInvoiceNumber = async () => {
+    setIsGeneratingNumber(true);
+    try {
+      const response = await axiosInstance.get(API_PATHS.INVOICE.GET_ALL);
+      const invoices = response.data;
+
+      let maxNum = 0;
+      invoices.forEach((inv) => {
+        const num = parseInt(inv.invoiceNumber.split("-")[1]);
+        if (!isNaN(num) && num > maxNum) {
+          maxNum = num;
+        }
+      });
+
+      const newInvoiceNumber = `INV-${String(maxNum + 1).padStart(3, "0")}`;
+
       setFormData((prevData) => ({
         ...prevData,
-        billTo: {
-          clientName: aiData.clientName || "",
-          email: aiData.clientEmail || "",
-          address: aiData.clientAddress || "",
-          phone: "",
-        },
-        items: aiData.items || [
-          { name: "", quantity: 1, unitPrice: 0, taxPercent: 0 },
-        ],
+        invoiceNumber: newInvoiceNumber,
+      }));
+    } catch (error) {
+      setFormData((prevData) => ({
+        ...prevData,
+        invoiceNumber: `INV-${Date.now().toString().slice(-5)}`,
       }));
     }
-    if (existingInvoice) {
-      setFormData({
-        ...existingInvoice,
-        invoiceDate: moment(existingInvoice.invoiceDate).format("YYYY-MM-DD"),
-        dueDate: moment(existingInvoice.dueDate).format("YYYY-MM-DD"),
-      });
-    } else {
-      const generateNewInvoiceNumber = async () => {
-        setIsGeneratingNumber(true);
-        try {
-          const response = await axiosInstance.get(API_PATHS.INVOICE.GET_ALL);
-          const invoices = response.data;
-          let maxNum = 0;
-          invoices.forEach((inv) => {
-            const num = parseInt(inv.invoiceNumber.split("-")[1]);
-            if (!isNaN(num) && num > maxNum) {
-              maxNum = num;
-            }
-          });
-          const newInvoiceNumber = `INV-${String(maxNum + 1).padStart(3, "0")}`;
-          setFormData((prevData) => ({
-            ...prevData,
-            invoiceNumber: newInvoiceNumber,
-          }));
-        } catch (error) {
-          console.error("Failed to generate invoice number");
-          setFormData((prevData) => ({
-            ...prevData,
-            invoiceNumber: `INV-${Date.now().toString().slice(-5)}`,
-          }));
-        }
-        setIsGeneratingNumber(false);
-      };
-      generateNewInvoiceNumber();
-    }
-  }, [existingInvoice]);
+    setIsGeneratingNumber(false);
+  };
 
-  const handleInputChange = (e, section, index) => {
+  generateNewInvoiceNumber();
+
+}, [existingInvoice, location.state ?.aiData]);
+
+
+
+
+const handleInputChange = (e, section, index) => {
     const { name, value } = e.target;
     if (section) {
       setFormData((prev) => ({
@@ -232,6 +340,8 @@ const handleSubmit = async (e) => {
     console.error(error);
   } finally {
     setLoading(false);
+          console.log("AI DATA RECEIVED:", location.state?.aiData);
+
   }
 };
 
@@ -243,7 +353,7 @@ const handleSubmit = async (e) => {
         <h2 className="text-xl font-semibold text-slate-200">
           {existingInvoice ? "Edit Invoice" : "Create Invoice"}
         </h2>
-        <Button type="submit" isloading={loading || isGeneratingNumber}>
+        <Button type="submit" isLoading={loading || isGeneratingNumber}>
           {existingInvoice ? "Save Changes" : "Save invoice"}
         </Button>
       </div>
@@ -261,7 +371,7 @@ const handleSubmit = async (e) => {
             label="Invoice Date"
             type="date"
             name="invoiceDate"
-            value={formData.invoiceDate || "" }
+            value={formData.invoiceDate || ""}
             onChange={handleInputChange}
           />
           <InputField
@@ -326,7 +436,7 @@ const handleSubmit = async (e) => {
           <TextareaField
             label="Client Address"
             name="address"
-            value={formData.billTo.address|| ""}
+            value={formData.billTo.address || ""}
             onChange={(e) => handleInputChange(e, "billTo")}
           />
           <InputField
@@ -440,7 +550,6 @@ const handleSubmit = async (e) => {
           </Button>
         </div>
       </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="p-6 rounded-lg shadow-sm shadow-gray-200 border border-slate-400 overflow-hidden">
           <h3 className="text-lg font-semibold text-slate-500">

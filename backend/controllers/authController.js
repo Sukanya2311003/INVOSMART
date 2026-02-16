@@ -137,7 +137,8 @@ exports.getMe= async( req, res)=>{
             email:user.email,
 
             businessName:user.businessName || "",
-            address: user.phone || "",
+            address: user.address || "",
+            phone:user.phone || "",
          });
 
 

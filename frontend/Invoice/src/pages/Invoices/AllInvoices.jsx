@@ -35,20 +35,76 @@ finally{
 fetchInvoices();
 }, []);
 
-const handleStatusChange= async(invoiceId)=>{
+const handleDelete= async(id)=>{
+    if(window.confirm('Are you sure you want to delete this invoice?')){
+        try{
+            await axiosInstance.delete(API_PATHS.INVOICE.DELETE_INVOICE(id));
+            setInvoices(invoices.filter(invoice => invoice._id!==id));
+        }
+        catch(err){
+             setError('Failed to delete invoice.');
+             console.error(err);
+        }
+    }
+};
+ const handleStatusChange= async( invoice)=>{
+    setStatusChangeLoading(invoice._id);
+    try{
+        const newStatus= invoice.status==='Paid' ? 'Unpaid': 'Paid';
+const updatedInvoice= {...invoice, status: newStatus};
+const response = await axiosInstance.put(API_PATHS.INVOICE.UPDATE_INVOICE(invoice._id), updatedInvoice);
+setInvoices(invoices.map(inv=>inv._id === invoice._id ? response.data: inv));
+
+}catch(err){
+    setError('Failed to update invoice status');
+    console.error(err);
+}
+finally{
+    setStatusChangeLoading(null);
+}
+    
+ };
+
+const handleOpenReminder= async(invoiceId)=>{
     setSelectedInvoiceId(invoiceId);
     setIsReminderModalOpen(true);
 };
-const filteredInvoices= useMemo(()=>{
-    return invoices
-    .filter(invoice=> statusFilter ==='All' || invoice.status===statusFilter)
-    .filter(invoice=>
-        invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||  invoice.billTo.clientName.toLowerCase().includes(searchTerm.toLowerCase())
+// const filteredInvoices= useMemo(()=>{
+//     return invoices
+//     .filter(invoice=> statusFilter ==='All' || invoice.status===statusFilter)
+//     .filter(invoice=>
+//         invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||  invoice.billTo.clientName.toLowerCase().includes(searchTerm.toLowerCase())
+//     );
+// }, [invoices, searchTerm, statusFilter]);
+const filteredInvoices = useMemo(() => {
+  return invoices
+    .filter(
+      (invoice) =>
+        statusFilter === "All" ||
+        invoice.status?.trim().toLowerCase() === statusFilter.toLowerCase(),
+    )
+    .filter(
+      (invoice) =>
+        invoice.invoiceNumber
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        invoice.billTo.clientName
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()),
     );
 }, [invoices, searchTerm, statusFilter]);
+
+
+
 if(loading){
     return <div className='flex justify-center itw-8 h-8 animate-spin text-blue-300  items-center  '><Loader2 className=''/></div>
 }
+console.log(
+  "Invoice statuses:",
+  invoices.map((i) => i.status),
+);
+console.log("Selected filter:", statusFilter);
+
 
 return (
   <div className="space-y-6">
@@ -116,7 +172,7 @@ return (
             >
               <option value="All">All</option>
               <option value="Paid">Paid</option>
-              <option value="Pending">Pending</option>
+              <option value="Unpaid">Pending</option>
               <option value="Overdue">Overdue</option>
             </select>
           </div>
@@ -124,7 +180,7 @@ return (
       </div>
 
       {filteredInvoices.length === 0 ? (
-        <div className="flex flex-xol items-center justify-center py-12 text-center">
+        <div className="flex flex-col items-center justify-center py-12 text-center">
           <div className="w-16 h-16 bg-slate-400 rounded-full flex items-center justify-center mb-4">
             <FileText className="w-8 h-8 text-slate-500" />
           </div>
@@ -142,7 +198,119 @@ return (
           )}
         </div>
       ) : (
-        <div className="w-full overflow-x-auto"></div>
+        // <div className="w-full overflow-x-auto block">
+        //     <table className='min-w-full divide-y divide-slate-200'>
+        //
+        <div className="w-[90vw] md:w-auto overflow-x-auto">
+          <table className="w-full min-w-[600px] divide-y divide-zinc-800">
+            <thead className="bg-zinc-300">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                  Invoice #
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                  Client
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                  Amount{" "}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                  Due Date
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-900 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-zinc-800 divide-y divide-slate-400">
+              {filteredInvoices.map((invoice) => (
+                <tr key={invoice._id} className="hover:bg-blue-900">
+                  <td
+                    onClick={() => navigate(`/invoices/${invoice._id}`)}
+                    className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-100 cursor-pointer"
+                  >
+                    {invoice.invoiceNumber}
+                  </td>
+                  <td
+                    onClick={() => navigate(`/invoices/${invoice._id}`)}
+                    className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-200 cursor-pointer"
+                  >
+                    {invoice.billTo.clientName}
+                  </td>
+                  <td
+                    onClick={() => navigate(`/invoices/${invoice._id}`)}
+                    className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-200 cursor-pointer"
+                  >
+                    {invoice.total.toFixed(2)}
+                  </td>
+                  <td
+                    onClick={() => navigate(`/invoices/${invoice._id}`)}
+                    className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-200 cursor-pointer"
+                  >
+                    {moment(invoice.dueDate).format("MM-D-YYYY")}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        invoice.status === "Paid"
+                          ? "bg-emerald-500/20 text-emerald-400"
+                          : invoice.status === "Pending"
+                            ? "bg-amber-500/20 text-amber-400"
+                            : "bg-red-500/20 text-red-400"
+                      }`}
+                    >
+                      {invoice.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div
+                      className="flex items-center justify-end gap-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Button
+                        size="small"
+                        variant="secondary"
+                        onClick={() => handleStatusChange(invoice)}
+                        isLoading={statusChangeLoading === invoice._id}
+                      >
+                        {invoice.status === "Paid"
+                          ? "Mark Unpaid"
+                          : "Mark Paid"}
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="ghost"
+                        onClick={() => navigate(`/invoices/${invoice._id}`)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="ghost"
+                        onClick={() => handleDelete(invoice._id)}
+                      >
+                        <Trash2 className="w-4 h-4 text-red-500" />
+                      </Button>
+                      {invoice.status !== "Paid" && (
+                        <Button
+                          size="small"
+                          variant="ghost"
+                          onClick={() => handleOpenReminder(invoice._id)}
+                          title="Generate Reminder"
+                        >
+                          <Mail className="w-4 h-4 text-blue-500" />
+                        </Button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   </div>

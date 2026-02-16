@@ -54,26 +54,33 @@ exports.getInvoices= async (req, res)=>{
 // @desc get single invoice by id
 // @route: GET /api/invoices/:id
 // @access private
-exports.getInvoiceById=async (req, res)=>{
-    try {
-        const invoice= await Invoice.findById(req.params.id).populate("user", "name email");
-        if(!invoice){
-            return res.status(404).json({message:"Invoice not found"});
+// 
 
-        //   checking if invoice belongs to the user
-        if(!invoice.user.toString() === req.user.id){
-            return res.status(401).json({message:"Unauthorized access"});
-        }
-        
+exports.getInvoiceById = async (req, res) => {
+  try {
+    const invoice = await Invoice.findById(req.params.id).populate(
+      "user",
+      "name email",
+    );
 
-            res.json(invoice);
-        }
-    } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error fetching invoice", error: error.message });
+    if (!invoice) {
+      return res.status(404).json({ message: "Invoice not found" });
     }
+
+    // 🔐 Check if invoice belongs to logged-in user
+    if (invoice.user._id.toString() !== req.user.id) {
+      return res.status(401).json({ message: "Unauthorized access" });
+    }
+
+    res.json(invoice);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching invoice",
+      error: error.message,
+    });
+  }
 };
+
 
 // @desc update invoice
 // @route: PUT/api/invoices/:id
