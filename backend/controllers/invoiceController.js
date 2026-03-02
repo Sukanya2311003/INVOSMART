@@ -38,7 +38,8 @@ exports.createInvoice = async (req, res) => {
 
     console.log("Client Features:", features);
     // 🔥 2️⃣ Call ML service
-    const response = await axios.post("http://127.0.0.1:5000/predict", {
+    // const response = await axios.post("http://127.0.0.1:5000/predict", {
+    const response = await axios.post(`${process.env.ML_SERVICE_URL}/predict`, {
       amount: total,
       late_count: features.lateCount,
       avg_delay: features.avgDelay,
