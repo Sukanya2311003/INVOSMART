@@ -1,3 +1,4 @@
+import os;
 from flask import Flask, request, jsonify
 import numpy as np
 from sklearn.ensemble import IsolationForest
@@ -14,7 +15,7 @@ X_train = np.array([
     [4000, 0, 1, 6, 0]
 ])
 
-model = IsolationForest(contamination=0.3)
+model = IsolationForest(contamination=0.3, n_estimators=50)
 model.fit(X_train)
 
 @app.route("/predict", methods=["POST"])
@@ -45,5 +46,8 @@ def predict():
 
 # if __name__ == "__main__":
 #     app.run(port=5000, debug=True)
+# if __name__ == "__main__":
+#     app.run(host="0.0.0.0", port=5000)
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
