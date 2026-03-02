@@ -226,7 +226,7 @@ return (
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-300">
-                    {moment(invoice.dueDate).format("MMM Do YYYY")}
+                    {moment(invoice.dueDate).format("MM-DD-YYYY")}
                   </td>
                 </tr>
               ))}

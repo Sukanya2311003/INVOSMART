@@ -1,60 +1,102 @@
-const Invoice= require("../models/Invoice");
+// 19feb
+const axios = require("axios");
+const Invoice = require("../models/Invoice");
+
+const calculateClientFeatures = require("../utils/riskCalculator");
+//
 
 // @desc  create new invoice
 // @route    POST/api/invoices
 // @access    Private
- 
-exports.createInvoice= async (req, res)=>{
-    try{
-        const user= req.user;
-        const {
-            invoiceNumber,
-            invoiceDate,
-            dueDate,
-            billFrom,
-            billTo,
-            items,
-            notes,
-            paymentTerms,
 
-        }= req.body;
-        // subtotal calculation
-        let subtotal= 0;
-        let taxTotal=0;
-        items.forEach(item => {
-            subtotal+= item.unitPrice * item.quantity;
-            taxTotal += ((item.unitPrice * item.quantity) * (item.taxPercent || 0)) / 100;
-            
-        });
-        const total= subtotal+ taxTotal;
-        const invoice= new Invoice({
-            user, invoiceNumber, invoiceDate, dueDate, billFrom, billTo, items, notes, paymentTerms, subtotal, taxTotal, total
-        });
-        await invoice.save();
-        res.status(201).json(invoice);
+exports.createInvoice = async (req, res) => {
+  try {
+    const user = req.user;
+    const {
+      invoiceNumber,
+      invoiceDate,
+      dueDate,
+      billFrom,
+      billTo,
+      items,
+      notes,
+      paymentTerms,
+    } = req.body;
+    // subtotal calculation
+    let subtotal = 0;
+    let taxTotal = 0;
+    items.forEach((item) => {
+      subtotal += item.unitPrice * item.quantity;
+      taxTotal +=
+        (item.unitPrice * item.quantity * (item.taxPercent || 0)) / 100;
+    });
+    const total = subtotal + taxTotal;
 
-    }
-    catch(error){
-            res.status(500).json({message:"Error creating invoice", error: error.message});
-    }
+    // 19 feb
+
+    const features = await calculateClientFeatures(billTo.clientName, user);
+
+    console.log("Client Features:", features);
+    // 🔥 2️⃣ Call ML service
+    const response = await axios.post("http://127.0.0.1:5000/predict", {
+      amount: total,
+      late_count: features.lateCount,
+      avg_delay: features.avgDelay,
+      frequency: features.totalInvoices,
+      new_client: features.isNewClient,
+    });
+
+    const riskScore = response.data.risk_score;
+    const riskLevel = response.data.risk_level;
+
+    //
+
+    const invoice = new Invoice({
+      user,
+      invoiceNumber,
+      invoiceDate,
+      dueDate,
+      billFrom,
+      billTo,
+      items,
+      notes,
+      paymentTerms,
+      subtotal,
+      taxTotal,
+      total,
+      //19feb
+      riskScore,
+      riskLevel,
+      //
+    });
+    await invoice.save();
+    res.status(201).json(invoice);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error creating invoice", error: error.message });
+  }
 };
 // @desc get all invoices of loggedin user
 // @route: GET /api/invoices
 // @access private
-exports.getInvoices= async (req, res)=>{
-    try {
-        const invoices= await Invoice.find({user: req.user.id}).populate("user", "name email");
-        res.json(invoices);
-    } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error creating invoice", error: error.message });
-    }
+exports.getInvoices = async (req, res) => {
+  try {
+    const invoices = await Invoice.find({ user: req.user.id }).populate(
+      "user",
+      "name email",
+    );
+    res.json(invoices);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error creating invoice", error: error.message });
+  }
 };
 // @desc get single invoice by id
 // @route: GET /api/invoices/:id
 // @access private
-// 
+//
 
 exports.getInvoiceById = async (req, res) => {
   try {
@@ -81,70 +123,132 @@ exports.getInvoiceById = async (req, res) => {
   }
 };
 
-
 // @desc update invoice
 // @route: PUT/api/invoices/:id
 // @access private
-exports.updateInvoice= async (req, res)=>{try {
+exports.updateInvoice = async (req, res) => {
+  try {
+    // const {
+    //     invoiceNumber,
+    //     invoiceDate,
+    //     dueDate,
+    //     billFrom,
+    //     billTo,
+    //     items,
+    //     notes,
+    //     paymentTerms,
+    //     status,
+    // }= req.body;
+    // let subtotal= 0;
+    // let taxTotal=0;
+    // if(items && items.length > 0){
+    //     items.forEach(item => {
+    //         subtotal+= item.unitPrice * item.quantity;
+    //         taxTotal += ((item.unitPrice * item.quantity)
+    //         * (item.taxPercent || 0)) / 100;
+    //     });
+    //     const total= subtotal + taxTotal;
+    //     const updatedInvoice= await Invoice.findByIdAndUpdate(req.params.id,{
+    //         invoiceNumber,
+    //         invoiceDate,
+    //         dueDate,
+    //         billFrom,
+    //         billTo,
+    //         items,
+    //         notes,
+    //         paymentTerms,
+    //         status,
+    //         subtotal,
+    //         taxTotal,
+    //         total,
+    //     }
+
+    //     ,{new:true});
+    //     if(!updatedInvoice){
+    //         return res.status(404).json({message:"Invoice not found"});
+
+    //     }
+
+    //     res.json(updatedInvoice);
+
+    // }
+
+    // created new update with stoding apid logic 19feb
     const {
-        invoiceNumber,
-        invoiceDate,
-        dueDate,
-        billFrom,
-        billTo,
-        items,
-        notes,
-        paymentTerms,
-        status,
-    }= req.body;
-    let subtotal= 0;
-    let taxTotal=0;
-    if(items && items.length > 0){
-        items.forEach(item => {
-            subtotal+= item.unitPrice * item.quantity;
-            taxTotal += ((item.unitPrice * item.quantity) 
-            * (item.taxPercent || 0)) / 100;
-        });
-        const total= subtotal + taxTotal;
-        const updatedInvoice= await Invoice.findByIdAndUpdate(req.params.id,{
-            invoiceNumber,
-            invoiceDate,
-            dueDate,
-            billFrom,
-            billTo,
-            items,
-            notes,
-            paymentTerms,
-            status,
-            subtotal,
-            taxTotal,
-            total,
-        }
-        ,{new:true});
-        if(!updatedInvoice){
-            return res.status(404).json({message:"Invoice not found"});
+      invoiceNumber,
+      invoiceDate,
+      dueDate,
+      billFrom,
+      billTo,
+      items,
+      notes,
+      paymentTerms,
+      status,
+    } = req.body;
 
-        }
-        res.json(updatedInvoice);
+    let updateData = {
+      invoiceNumber,
+      invoiceDate,
+      dueDate,
+      billFrom,
+      billTo,
+      notes,
+      paymentTerms,
+      status,
+    };
 
+    // 🔥 Recalculate only if items exist
+    if (items && items.length > 0) {
+      let subtotal = 0;
+      let taxTotal = 0;
 
+      items.forEach((item) => {
+        subtotal += item.unitPrice * item.quantity;
+        taxTotal +=
+          (item.unitPrice * item.quantity * (item.taxPercent || 0)) / 100;
+      });
+
+      updateData.items = items;
+      updateData.subtotal = subtotal;
+      updateData.taxTotal = taxTotal;
+      updateData.total = subtotal + taxTotal;
     }
-} catch (error) {
-  res
-    .status(500)
-    .json({ message: "Error updating invoice", error: error.message });
-}};
+
+    // 🔥 Paid date logic
+    if (status === "Paid") {
+      updateData.paidAt = new Date();
+    }
+
+    const updatedInvoice = await Invoice.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true },
+    );
+
+    if (!updatedInvoice) {
+      return res.status(404).json({ message: "Invoice not found" });
+    }
+
+    res.json(updatedInvoice);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error updating invoice", error: error.message });
+  }
+};
 // @desc delete invoice by
 // @route: DELETE /api/invoices/:id
 // @access private
-exports.deleteInvoice= async (req, res)=>{try {
-    const invoice= await Invoice.findByIdAndDelete(req.params.id);
-    if(!invoice){
-        return res.status(404).json({message:"Invoice not found"});
+exports.deleteInvoice = async (req, res) => {
+  try {
+    const invoice = await Invoice.findByIdAndDelete(req.params.id);
+    if (!invoice) {
+      return res.status(404).json({ message: "Invoice not found" });
     }
-    res.json({message:"Invoice deleted successfully"});
-} catch (error) {
-  res
-    .status(500)
-    .json({ message: "Error deleting invoice", error: error.message });
-}};
+    res.json({ message: "Invoice deleted successfully" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error deleting invoice", error: error.message });
+  }
+};

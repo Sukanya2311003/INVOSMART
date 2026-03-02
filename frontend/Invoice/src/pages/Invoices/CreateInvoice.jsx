@@ -93,7 +93,8 @@ const CreateInvoice = () => {
 //     if (existingInvoice) {
 //       setFormData({
 //         ...existingInvoice,
-//         invoiceDate: moment(existingInvoice.invoiceDate).format("YYYY-MM-DD"),
+//         invoiceDate: moment(existingInvoice.invoiceDate).format("
+// "),
 //         dueDate: moment(existingInvoice.dueDate).format("YYYY-MM-DD"),
 //       });
 //     } else {
@@ -142,7 +143,7 @@ useEffect(() => {
    setFormData({
      ...existingInvoice,
      invoiceDate: moment(existingInvoice.invoiceDate).format("YYYY-MM-DD"),
-     dueDate: moment(existingInvoice.dueDate).format("MM-DD-YYYY"),
+     dueDate: moment(existingInvoice.dueDate).format("YYYY-MM-DD"),
    });
    return;
  }
@@ -155,11 +156,11 @@ useEffect(() => {
 
       // Dates
       invoiceDate: aiData.invoiceDate
-        ? moment(aiData.invoiceDate).format("YYYY-MM-DD")
+        ? moment(aiData.invoiceDate, "MM-DD-YYYY").format("YYYY-MM-DD")
         : prevData.invoiceDate,
 
       dueDate: aiData.dueDate
-        ? moment(aiData.dueDate).format("YYYY-MM-DD")
+        ? moment(aiData.dueDate, "MM-DD-YYYY").format("YYYY-MM-DD")
         : prevData.dueDate,
 
       // Notes
@@ -328,10 +329,61 @@ const handleSubmit = async (e) => {
         finalFormData,
       );
       toast.success("Invoice updated successfully");
+
+// 19feb
+setTimeout(() => {
+  navigate("/invoices");
+}, 1000);
+//
+
+
     } else {
       // Create new invoice
-      await axiosInstance.post(API_PATHS.INVOICE.CREATE, finalFormData);
-      toast.success("Invoice created successfully");
+      // await axiosInstance.post(API_PATHS.INVOICE.CREATE, finalFormData);
+      // toast.success("Invoice created successfully");
+      // 19feb
+
+      const response = await axiosInstance.post(
+        API_PATHS.INVOICE.CREATE,
+        finalFormData);
+        const createdInvoice = response.data;
+        console.log("Created Invoice Response:", createdInvoice);
+
+
+        if (createdInvoice.riskLevel === "High") {
+          toast.custom(
+            (t) => (
+              <div
+                className={`${
+                  t.visible ? "animate-enter" : "animate-leave"
+                } max-w-md w-full bg-red-900 border border-red-500 shadow-lg rounded-lg pointer-events-auto flex`}
+              >
+                <div className="flex-1 p-4">
+                  <div className="flex items-start">
+                    <div className="text-red-400 text-xl">⚠️</div>
+                    <div className="ml-3">
+                      <p className="text-sm font-bold text-red-200">
+                        High Risk Invoice Detected!
+                      </p>
+                      <p className="mt-1 text-sm text-red-400">
+                        This invoice has been flagged by AI fraud detection.
+                        Please review carefully.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ),
+            { duration: 5000 },
+          );
+        } else {
+          toast.success("Invoice created successfully");
+        }
+
+        setTimeout(() => {
+          navigate("/invoices");
+        }, 1500);
+      // 
     }
 
     navigate("/invoices");

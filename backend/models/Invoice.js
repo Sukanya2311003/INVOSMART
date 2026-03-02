@@ -8,54 +8,68 @@ const itemSchema= new mongoose.Schema({
     total:{type: Number, required: true},
 });
 
-const invoiceSchema= new mongoose.Schema(
-    {
-        user:{
-            type:mongoose.Schema.Types.ObjectId,
-            ref:"User",
-            required: true,
-        },
-        invoiceNumber:{
-            type:String,
-            requiredt:true,
-        },
-        invoiceDate:{
-            type:Date,
-            default:Date.now,
-
-        },
-        dueDate:{
-            type:Date,
-        },
-        billFrom:{
-            businessName: String,
-            email:String,
-            address: String,
-            phone: String,
-        },
-        billTo:{
-            clientName: String,
-            email: String,
-            address: String,
-            phone: String,
-        },
-        items:[itemSchema],
-        notes:{
-            type:String,
-        },
-        paymentTerms:{
-            type:String,
-            default:"Net 15",
-        },
-        status:{
-            type:String,
-            enum:["Paid", "Unpaid"],
-            default:"Unpaid",
-        },
-        subtotal:Number,
-        taxTotal: Number,
-        total: Number,
+const invoiceSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
-    {timestamps:true}
+    invoiceNumber: {
+      type: String,
+      requiredt: true,
+    },
+    invoiceDate: {
+      type: Date,
+      default: Date.now,
+    },
+    dueDate: {
+      type: Date,
+    },
+    billFrom: {
+      businessName: String,
+      email: String,
+      address: String,
+      phone: String,
+    },
+    billTo: {
+      clientName: String,
+      email: String,
+      address: String,
+      phone: String,
+    },
+    items: [itemSchema],
+    notes: {
+      type: String,
+    },
+    paymentTerms: {
+      type: String,
+      default: "Net 15",
+    },
+    status: {
+      type: String,
+      enum: ["Paid", "Unpaid"],
+      default: "Unpaid",
+    },
+    subtotal: Number,
+    taxTotal: Number,
+    total: Number,
+
+    // making changes on 19 feb
+    paidAt: {
+      type: Date,
+    },
+
+    riskScore: {
+      type: Number,
+      default: 0,
+    },
+
+    riskLevel: {
+      type: String,
+      default: "Low",
+    },
+  },
+  { timestamps: true },
 );
 module.exports=mongoose.model("Invoice", invoiceSchema);

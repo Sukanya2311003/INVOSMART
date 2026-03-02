@@ -220,6 +220,12 @@ return (
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                   Status
                 </th>
+                {/* 19 feb */}
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                  Risk
+                </th>
+
+                {/*  */}
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-900 uppercase tracking-wider">
                   Actions
                 </th>
@@ -250,7 +256,7 @@ return (
                     onClick={() => navigate(`/invoices/${invoice._id}`)}
                     className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-200 cursor-pointer"
                   >
-                    {moment(invoice.dueDate).format("MM-D-YYYY")}
+                    {moment(invoice.dueDate).format("MM-DD-YYYY")}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <span
@@ -265,6 +271,22 @@ return (
                       {invoice.status}
                     </span>
                   </td>
+                  {/* 19 feb */}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        invoice.riskLevel === "High"
+                          ? "bg-red-500/20 text-red-400"
+                          : invoice.riskLevel === "Medium"
+                            ? "bg-amber-500/20 text-amber-400"
+                            : "bg-emerald-500/20 text-emerald-400"
+                      }`}
+                    >
+                      {invoice.riskLevel || "Low"}
+                    </span>
+                  </td>
+
+                  {/*  */}
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div
                       className="flex items-center justify-end gap-2"

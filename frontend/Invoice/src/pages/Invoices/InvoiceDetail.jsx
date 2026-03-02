@@ -79,6 +79,51 @@ return (
       invoiceId={invoice._id}
     />
 
+    {/* 19feb */}
+    {/* AI Risk Warning (Not Printed) */}
+    {invoice.riskLevel === "High" && (
+      <div
+        className="no-print relative overflow-hidden rounded-xl border border-red-500/50 
+                  bg-gradient-to-r from-red-900/40 to-red-800/30 p-6 
+                  shadow-lg shadow-red-500/20 backdrop-blur-sm 
+                  animate-riskFloat"
+      >
+        {/* Animated Glow Overlay */}
+        <div className="absolute inset-0 bg-red-500/10 blur-3xl opacity-40 animate-riskGlow"></div>
+
+        <div className="relative flex items-start gap-4">
+          {/* Animated Icon */}
+          <div
+            className="flex-shrink-0 w-12 h-12 rounded-full bg-red-500/20 
+                      flex items-center justify-center text-2xl text-red-400 
+                      animate-riskPulse"
+          >
+            ⚠️
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold text-red-200 tracking-wide">
+              High Risk Invoice Detected
+            </h3>
+
+            <p className="mt-2 text-sm text-red-200 leading-relaxed">
+              Our AI fraud detection engine has flagged this invoice as{" "}
+              <span className="font-semibold text-red-300">
+                potentially risky
+              </span>{" "}
+              based on transaction patterns and client behavior.
+            </p>
+
+            <p className="mt-1 text-sm font-bold text-red-300/80">
+              Please review carefully before processing payment.
+            </p>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/*  */}
+
     {/* 🔹 Buttons (Hidden in Print) */}
     <div className="flex justify-between items-center no-print">
       <h2 className="text-2xl font-semibold text-slate-200">
@@ -151,11 +196,11 @@ return (
         <div className="text-right">
           <p>
             <strong>Invoice Date:</strong>{" "}
-            {moment(invoice.invoiceDate).format("DD MMM YYYY")}
+            {moment(invoice.invoiceDate).format("MM-DD-YYYY")}
           </p>
           <p>
             <strong>Due Date:</strong>{" "}
-            {moment(invoice.dueDate).format("DD MMM YYYY")}
+            {moment(invoice.dueDate).format("MM-DD-YYYY")}
           </p>
           <p>
             <strong>Status:</strong> {invoice.status}
